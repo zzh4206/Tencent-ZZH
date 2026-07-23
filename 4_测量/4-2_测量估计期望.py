@@ -1,57 +1,40 @@
-"""
-星火预习题目 — 4-2：基于测量结果近似期望
-============================================
-用测量比特串来估计 ⟨Z₀Z₁⟩。
-
-方法：对线路进行 N 次测量，每次得到比特串 b₀b₁。
-对于每个测量结果，Z₀Z₁ 的本征值为 (-1)^{b₀+b₁}
-（因为 Z|0⟩=+|0⟩, Z|1⟩=-|1⟩）。
-
-期望估计：
-  ⟨Z₀Z₁⟩ ≈ (1/N) Σ_{样本} (-1)^{b₀+b₁}
-
-由于 Bell 态中 b₀=b₁ 总是成立，每个样本都给出 +1，
-所以 ⟨Z₀Z₁⟩_est = 1（精确）。
-"""
-
 import numpy as np
 import tensorcircuit as tc
 import matplotlib.pyplot as plt
 
 K = tc.set_backend("tensorflow")
 
-# Build the circuit
+
 c = tc.Circuit(2)
 c.h(0)
 c.cx(0, 1)
 
-# Exact expectation
+
 exact = float(K.real(c.expectation_ps(z=[0, 1])).numpy())
 print(f"精确 ⟨Z₀Z₁⟩ = {exact:.6f}")
 print()
 
-# Perform measurements
+
 for n_shots in [10, 100, 1000, 10000, 100000]:
-    # Do n_shots measurements
+
     bitstrings = []
     for _ in range(n_shots):
-        # Measure and get bitstring as integer
-        result = c.measure(2)  # returns (int, count) or a list
-        # Actually, use measure_jax or just sample
-        # For simplicity, we use the per-shot API
+
+        result = c.measure(2)
+
+
         pass
 
-    # Better approach: use c.sample() or batch measurement
-    # Let's use the proper API
+
     break
 
-# Actually, let's use the correct API for multiple shots
+
 np.random.seed(42)
 
-# Method: Use the statevector to simulate measurements
+
 sv = c.state().numpy().flatten()
 probs = np.abs(sv) ** 2
-# Bell state: prob(|00⟩) = 0.5, prob(|11⟩) = 0.5
+
 
 print("=" * 60)
 print("测量模拟：从 Bell 态采样估计 ⟨Z₀Z₁⟩")
@@ -60,22 +43,22 @@ print("=" * 60)
 results = {}
 
 for N in [10, 30, 100, 300, 1000, 3000, 10000]:
-    # Sample bitstrings from the statevector
+
     indices = np.random.choice(4, size=N, p=probs)
-    # For each sample, compute Z₀Z₁ eigenvalue = (-1)^{b₀+b₁}
-    # b₀ = index // 2, b₁ = index % 2
+
+
     b0 = indices // 2
     b1 = indices % 2
     z0z1_vals = (-1.0) ** (b0 + b1)
     estimate = np.mean(z0z1_vals)
-    std_err = np.std(z0z1_vals) / np.sqrt(N)  # Standard error of mean
+    std_err = np.std(z0z1_vals) / np.sqrt(N)
 
     results[N] = (estimate, std_err)
     err = abs(estimate - exact)
     print(f"  N={N:6d}: ⟨Z₀Z₁⟩_est = {estimate:.6f} ± {std_err:.6f}, "
           f"|error| = {err:.6f}")
 
-# Visualization
+
 Ns = sorted(results.keys())
 estimates = [results[n][0] for n in Ns]
 errors = [results[n][1] for n in Ns]
@@ -94,7 +77,7 @@ ax1.grid(True, alpha=0.3)
 ax2.errorbar(Ns, [abs(e - exact) for e in estimates], yerr=errors, fmt='o-', capsize=3)
 ax2.set_xscale('log')
 ax2.set_yscale('log')
-# 1/√N reference line
+
 ax2.plot(Ns, [1/np.sqrt(n) for n in Ns], 'k--', alpha=0.5, label=r'$1/\sqrt{N}$')
 ax2.set_xlabel('Number of shots N')
 ax2.set_ylabel('Absolute error')

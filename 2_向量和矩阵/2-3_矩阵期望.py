@@ -1,21 +1,7 @@
-"""
-星火预习题目 — 2-3：矩阵关于向量的期望
-=========================================
-定义 ⟨Q⟩ = v†Qv，其中 v(θ) = e^{iθ/2 P} v₀, v₀ = (1,0)。
-P, Q ∈ {σ_x, σ_y, σ_z}（输入 0,1,2 分别对应 x,y,z）。
-
-【解析推导】
-v(θ) = (cos(θ/2)I + i sin(θ/2)P) |0⟩
-
-当 P = σ_z 时：v(θ) = (e^{iθ/2}, 0)^T（仅相位因子的变化）
-当 P = σ_x 时：v(θ) = (cos(θ/2), i sin(θ/2))^T（在 |0⟩ 和 |1⟩ 之间旋转）
-当 P = σ_y 时：v(θ) = (cos(θ/2), sin(θ/2))^T（在 |0⟩ 和 |1⟩ 之间旋转，无虚部）
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Pauli matrices
+
 SX = np.array([[0, 1], [1, 0]], dtype=complex)
 SY = np.array([[0, -1j], [1j, 0]], dtype=complex)
 SZ = np.array([[1, 0], [0, -1]], dtype=complex)
@@ -25,24 +11,19 @@ I = np.eye(2, dtype=complex)
 
 
 def expectation(P_idx, Q_idx, theta):
-    """
-    计算 ⟨Q⟩ = v(θ)† Q v(θ)
-    P_idx, Q_idx: 0→σ_x, 1→σ_y, 2→σ_z
-    """
     P = PAULI_LIST[P_idx]
     Q = PAULI_LIST[Q_idx]
 
-    # v(θ) = e^{iθ/2 P} v₀, v₀ = |0⟩
+
     v0 = np.array([1.0 + 0j, 0.0 + 0j])
-    # 用欧拉公式: e^{iθ/2 P} = cos(θ/2) I + i sin(θ/2) P
+
     v = np.cos(theta / 2) * v0 + 1j * np.sin(theta / 2) * (P @ v0)
 
-    # ⟨Q⟩ = v† Q v
+
     expval = np.conjugate(v).T @ (Q @ v)
-    return np.real(expval)  # 期望值是实数
+    return np.real(expval)
 
 
-# 对所有组合计算并可视化
 thetas = np.linspace(0, 4 * np.pi, 400)
 fig, axes = plt.subplots(3, 3, figsize=(14, 10))
 
@@ -62,7 +43,7 @@ plt.tight_layout()
 plt.savefig("2-3_矩阵期望.png", dpi=150, bbox_inches="tight")
 plt.show()
 
-# 规律讨论
+
 print("=" * 60)
 print("规律讨论：")
 print("=" * 60)

@@ -1,14 +1,3 @@
-"""
-星火预习题目 — OPT-2-1：求解方程
-====================================
-用变分优化/梯度下降求解三次方程 ax³ + bx² + cx + d = 0。
-
-方法：定义损失函数 L(x) = |ax³ + bx² + cx + d|²，
-用梯度下降最小化 L 找到实根。
-
-对三次方程，有 1~3 个实根。通过不同初始点可找到不同根。
-"""
-
 import numpy as np
 import tensorcircuit as tc
 
@@ -16,36 +5,12 @@ K = tc.set_backend("tensorflow")
 
 
 def solve_cubic(a, b, c, d, x0=None, learning_rate=0.01, n_steps=500, tol=1e-8):
-    """
-    用梯度下降求解 ax³ + bx² + cx + d = 0。
-
-    损失函数: L(x) = (ax³ + bx² + cx + d)²
-
-    Parameters
-    ----------
-    a, b, c, d : float
-        方程系数
-    x0 : float or None
-        初始猜测（None 时自动选多个点找不同根）
-    learning_rate : float
-        学习率
-    n_steps : int
-        最大迭代步数
-    tol : float
-        收敛阈值
-
-    Returns
-    -------
-    roots : list of float
-        找到的实根列表
-    """
     a_t = K.convert_to_tensor(a, dtype=K.float32)
     b_t = K.convert_to_tensor(b, dtype=K.float32)
     c_t = K.convert_to_tensor(c, dtype=K.float32)
     d_t = K.convert_to_tensor(d, dtype=K.float32)
 
     def loss_fn(x):
-        """L(x) = |ax³ + bx² + cx + d|²"""
         poly = a_t * x ** 3 + b_t * x ** 2 + c_t * x + d_t
         return poly ** 2
 
@@ -56,10 +21,10 @@ def solve_cubic(a, b, c, d, x0=None, learning_rate=0.01, n_steps=500, tol=1e-8):
         history = [x.numpy()]
         for step in range(n_steps):
             g = grad_fn(x)
-            # 自适应学习率：loss 大时用大学习率
+
             lr_eff = learning_rate / (1.0 + 0.01 * step)
             x_new = x - lr_eff * g
-            # 裁剪避免发散
+
             x_new = K.clip(x_new, -100.0, 100.0)
             x = x_new
             history.append(x.numpy())
@@ -67,7 +32,7 @@ def solve_cubic(a, b, c, d, x0=None, learning_rate=0.01, n_steps=500, tol=1e-8):
                 break
         return x.numpy(), history
 
-    # 从多个初始点尝试，收集不同根
+
     if x0 is not None:
         root, _ = find_root_from(x0)
         return [root]
@@ -78,7 +43,7 @@ def solve_cubic(a, b, c, d, x0=None, learning_rate=0.01, n_steps=500, tol=1e-8):
             r, _ = find_root_from(x0_cand)
             roots_raw.append(r)
 
-        # 去重（相近的根视为同一个）
+
         roots = []
         for r in roots_raw:
             is_new = True
@@ -91,42 +56,37 @@ def solve_cubic(a, b, c, d, x0=None, learning_rate=0.01, n_steps=500, tol=1e-8):
         return sorted(roots)
 
 
-# ============================================================
-# 测试
-# ============================================================
 print("=" * 60)
 print("变分优化求解三次方程")
 print("=" * 60)
 
 test_cases = [
-    # (a, b, c, d, 描述)
-    (1, -6, 11, -6, "x³-6x²+11x-6=0, 根: 1,2,3"),          # (x-1)(x-2)(x-3)
-    (1, 0, -1, 0, "x³-x=0, 根: -1,0,1"),                  # x(x-1)(x+1)
-    (1, 1, 1, 1, "x³+x²+x+1=0, 复根为主, 实根: -1"),       # (x+1)(x²+1)
-    (1, -3, 3, -1, "(x-1)³=0, 三重根: 1"),                 # 重根
+
+    (1, -6, 11, -6, "x³-6x²+11x-6=0, 根: 1,2,3"),
+    (1, 0, -1, 0, "x³-x=0, 根: -1,0,1"),
+    (1, 1, 1, 1, "x³+x²+x+1=0, 复根为主, 实根: -1"),
+    (1, -3, 3, -1, "(x-1)³=0, 三重根: 1"),
     (2, -4, -6, 8, "2x³-4x²-6x+8=0"),
 ]
 
 for a, b, c, d, desc in test_cases:
     roots = solve_cubic(a, b, c, d)
-    # 验证
+
     residuals = [abs(a * r ** 3 + b * r ** 2 + c * r + d) for r in roots]
     max_res = max(residuals) if residuals else 0
     print(f"\n{desc}")
     print(f"  找到的实根: {[f'{r:.6f}' for r in roots]}")
     print(f"  最大残差: {max_res:.2e}")
 
-    # 与 numpy.roots 比较
+
     np_roots = np.roots([a, b, c, d])
     np_real = sorted([r.real for r in np_roots if abs(r.imag) < 1e-8])
     print(f"  numpy 实根: {[f'{r:.6f}' for r in np_real]}")
 
-# ============================================================
-# 可视化梯度下降过程
-# ============================================================
+
 import matplotlib.pyplot as plt
 
-a, b, c, d = 1, -6, 11, -6  # (x-1)(x-2)(x-3)
+a, b, c, d = 1, -6, 11, -6
 
 a_t = K.convert_to_tensor(a, dtype=K.float32)
 b_t = K.convert_to_tensor(b, dtype=K.float32)
@@ -149,20 +109,20 @@ for xv in x_plot:
 
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
 
-# Plot loss landscape + GD trajectories
+
 ax1.semilogy(x_plot, loss_plot, 'b-', lw=1, alpha=0.3, label='Loss landscape')
 ax1.set_ylabel('Loss L(x)')
 ax1.set_xlabel('x')
 ax1.set_title('Gradient descent on cubic equation')
 ax1.grid(True, alpha=0.3)
 
-# 三个根
+
 for r in [1, 2, 3]:
     ax1.axvline(x=r, color='green', linestyle='--', alpha=0.4)
     ax1.annotate(f'x={r}', xy=(r, 1e-10), fontsize=9, color='green',
                  ha='center')
 
-# 从不同初始点做 GD
+
 init_points = [-0.2, 1.5, 2.5, 3.5, 4.0]
 colors = plt.cm.tab10(np.linspace(0, 1, len(init_points)))
 for x0, color in zip(init_points, colors):

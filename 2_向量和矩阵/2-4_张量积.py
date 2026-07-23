@@ -1,51 +1,27 @@
-"""
-星火预习题目 — 2-4：张量积
-=============================
-生成矩阵 H = Σ_{i=0}^{n-1} Z_i + Σ_{i=0}^{n-2} X_i X_{i+1}
-并求 H 在 |0...0⟩ 下的期望值。
-
-【解析分析】
-这是横场 Ising 模型的哈密顿量。
-Z_i ≡ I ⊗ ... ⊗ Z ⊗ ... ⊗ I（Z 在第 i 位）
-X_i X_{i+1} ≡ I ⊗ ... ⊗ X ⊗ X ⊗ ... ⊗ I（X 在第 i 和 i+1 位）
-
-在 |0...0⟩ 态下：
-- ⟨Z_i⟩ = ⟨0|Z|0⟩ = 1  → Σ Z_i 贡献 = n
-- ⟨X_i X_{i+1}⟩ = ⟨0|X|0⟩·⟨0|X|0⟩ = 0·0 = 0（因为 ⟨0|X|0⟩ = 0）
-
-所以 ⟨H⟩ = n。
-"""
-
 import numpy as np
 from functools import reduce
 
 
 def kron(*matrices):
-    """张量积"""
     return reduce(np.kron, matrices)
 
 
-# Pauli matrices
 I_mat = np.eye(2, dtype=complex)
 X = np.array([[0, 1], [1, 0]], dtype=complex)
 Z = np.array([[1, 0], [0, -1]], dtype=complex)
 
 
 def build_H_full_matrix(n):
-    """
-    构造 H 的完整 2^n × 2^n 矩阵。
-    仅适用于小 n（n ≤ 5），因矩阵维度为 2^n。
-    """
     dim = 2 ** n
     H = np.zeros((dim, dim), dtype=complex)
 
-    # Σ Z_i
+
     for i in range(n):
         ops = [I_mat] * n
         ops[i] = Z
         H += kron(*ops)
 
-    # Σ X_i X_{i+1}
+
     for i in range(n - 1):
         ops = [I_mat] * n
         ops[i] = X
@@ -56,11 +32,10 @@ def build_H_full_matrix(n):
 
 
 def compute_expectation(n):
-    """计算 ⟨0...0| H |0...0⟩，使用分析公式和矩阵形式对比"""
-    # 分析结果
-    analytic = n  # Σ⟨Z_i⟩ = n, Σ⟨X_i X_{i+1}⟩ = 0
 
-    # 构造 |0...0⟩ 向量
+    analytic = n
+
+
     dim = 2 ** n
     v0 = np.zeros(dim, dtype=complex)
     v0[0] = 1.0
@@ -82,7 +57,7 @@ print("=" * 60)
 for n_test in [2, 3, 4, 5, 6, 10]:
     compute_expectation(n_test)
 
-# 小矩阵展示
+
 print("\n" + "=" * 60)
 print("n=2 时的 H 矩阵（4×4）：")
 print("=" * 60)
@@ -92,7 +67,7 @@ print(np.real(H2))
 print("\n说明：H 是对角线 + 非对角线的结构。")
 print("对角元来自 Z_i 项，非对角元来自 X_i X_{i+1}（自旋翻转）项。")
 
-# 可视化 n=3 的矩阵结构
+
 import matplotlib.pyplot as plt
 
 H3 = build_H_full_matrix(3)

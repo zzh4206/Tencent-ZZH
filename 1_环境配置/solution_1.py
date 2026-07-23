@@ -1,9 +1,3 @@
-"""
-星火预习题目 — 第1题：环境配置
-===================================
-配置 Python 环境与 tensorcircuit，跑通演示代码。
-"""
-
 from matplotlib import pyplot as plt
 import numpy as np
 import tensorcircuit as tc

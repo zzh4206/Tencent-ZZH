@@ -1,18 +1,8 @@
-"""
-星火预习题目 — 2-1：旋转矩阵
-==============================
-给定 v = (1,0), R(θ) = [[cosθ, sinθ], [-sinθ, cosθ]],
-计算 v' = R(θ)v，可视化其几何意义。
-
-结论：R(θ) 是顺时针旋转矩阵，将向量 (1,0) 顺时针旋转 θ 角。
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 def R(theta):
-    """旋转矩阵 R(θ) = [[cosθ, sinθ], [-sinθ, cosθ]]"""
     c = np.cos(theta)
     s = np.sin(theta)
     return np.array([[c, s], [-s, c]])
@@ -20,7 +10,7 @@ def R(theta):
 
 v = np.array([1.0, 0.0])
 
-# 展示几个不同角度的旋转
+
 thetas = [0, np.pi / 6, np.pi / 4, np.pi / 3, np.pi / 2, 2 * np.pi / 3, np.pi]
 fig, ax = plt.subplots(1, 1, figsize=(6, 6))
 ax.set_xlim(-1.5, 1.5)
@@ -42,10 +32,10 @@ ax.legend(fontsize=8)
 plt.savefig("2-1_旋转矩阵.png", dpi=150, bbox_inches="tight")
 plt.show()
 
-# 连续扫描 θ
+
 thetas_cont = np.linspace(0, 2 * np.pi, 200)
-x_vals = np.cos(thetas_cont)   # R(θ)v 的第一分量
-y_vals = -np.sin(thetas_cont)  # R(θ)v 的第二分量
+x_vals = np.cos(thetas_cont)
+y_vals = -np.sin(thetas_cont)
 
 fig2, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 ax1.plot(thetas_cont, x_vals, label="x'")

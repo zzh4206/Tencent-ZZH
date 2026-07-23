@@ -1,36 +1,10 @@
-"""
-星火预习题目 — 4-3：测量不确定度
-====================================
-分析测量估计 ⟨Z₀Z₁⟩ 的误差随测量次数 N 的标度规律。
-
-【理论分析】
-测量估计是 N 个独立样本的均值。由中心极限定理：
-  Var(⟨Ô⟩_est) = Var(Ô) / N
-  σ(⟨Ô⟩_est) = σ_Ô / √N
-
-对于 Z₀Z₁ 在 Bell 态上：
-  Var(Z₀Z₁) = ⟨(Z₀Z₁)²⟩ - ⟨Z₀Z₁⟩²
-             = 1 - 1² = 0
-
-因为 Bell 态是 Z₀Z₁ 的本征态，每次测量结果完全确定，
-不确定度为 0。
-
-【更一般的情况】
-对于非本征态，测量方差 O(1/N)，σ ∝ 1/√N。
-这是量子测量统计的根本特征——标准量子极限（SQL）。
-
-下面用更一般的线路来验证 1/√N 标度律。
-"""
-
 import numpy as np
 import tensorcircuit as tc
 import matplotlib.pyplot as plt
 
 K = tc.set_backend("tensorflow")
 
-# ============================================================
-# Case 1: Bell state + Z₀Z₁ (方差 = 0)
-# ============================================================
+
 print("=" * 60)
 print("Case 1: Bell 态 + Z₀Z₁（Z₀Z₁ 的本征态）")
 print("=" * 60)
@@ -56,23 +30,21 @@ for N in [100, 1000, 10000, 100000]:
 print("→ 方差 = 0，任意 N 都给出精确 1.0（本征态测量无统计涨落）")
 print()
 
-# ============================================================
-# Case 2: Single qubit, |+⟩ state, ⟨Z⟩ (方差 > 0)
-# ============================================================
+
 print("=" * 60)
 print("Case 2: |+⟩ 态 + Z（非本征态，方差最大）")
 print("=" * 60)
 
 c2 = tc.Circuit(1)
-c2.h(0)  # |+⟩ = (|0⟩ + |1⟩)/√2
+c2.h(0)
 exact2 = float(K.real(c2.expectation_ps(z=[0])).numpy())
 print(f"精确 ⟨Z⟩ = {exact2:.6f} (|+⟩ 中 ⟨Z⟩ = 0)")
 
 sv2 = c2.state().numpy().flatten()
-probs2 = np.abs(sv2) ** 2  # [0.5, 0.5]
+probs2 = np.abs(sv2) ** 2
 
-# 多次重复实验，每次 N 个 shots
-n_trials = 200  # 重复次数
+
+n_trials = 200
 N_list = [10, 30, 100, 300, 1000, 3000, 10000, 30000]
 
 mean_errors = []
@@ -83,8 +55,8 @@ for N in N_list:
     estimates = np.zeros(n_trials)
     for trial in range(n_trials):
         indices = np.random.choice(2, size=N, p=probs2)
-        # Z eigenvalue: |0⟩→+1, |1⟩→-1
-        zvals = 1.0 - 2.0 * indices  # 0→1, 1→-1
+
+        zvals = 1.0 - 2.0 * indices
         estimates[trial] = np.mean(zvals)
 
     abs_errors = np.abs(estimates - exact2)
@@ -93,16 +65,14 @@ for N in N_list:
     print(f"  N={N:6d}: mean|error| = {np.mean(abs_errors):.6f}, "
           f"expected σ/√N = {1.0/np.sqrt(N):.6f}")
 
-# ============================================================
-# Visualization: 1/√N scaling
-# ============================================================
+
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
 
 N_arr = np.array(N_list, dtype=float)
 
-# Plot 1: error vs N (log-log)
+
 ax1.loglog(N_arr, mean_errors, 'o-', label='Mean |error|', lw=2)
-# 1/√N reference
+
 ax1.loglog(N_arr, 1.0 / np.sqrt(N_arr), 'k--', alpha=0.7,
            label=r'$1/\sqrt{N}$ scaling')
 ax1.set_xlabel('Number of measurements N')
@@ -111,7 +81,7 @@ ax1.set_title('Error vs N (Bell state, Z measurement)')
 ax1.legend()
 ax1.grid(True, alpha=0.3)
 
-# Plot 2: scaled error (error × √N → const)
+
 scaled = np.array(mean_errors) * np.sqrt(N_arr)
 ax2.semilogx(N_arr, scaled, 'o-', lw=2)
 ax2.axhline(y=np.mean(scaled), color='red', linestyle='--',
@@ -128,9 +98,7 @@ plt.tight_layout()
 plt.savefig("4-3_测量不确定度.png", dpi=150, bbox_inches="tight")
 plt.show()
 
-# ============================================================
-# Single-shot variance and the SQL
-# ============================================================
+
 print("\n" + "=" * 60)
 print("理论分析：标准量子极限 (SQL)")
 print("=" * 60)
